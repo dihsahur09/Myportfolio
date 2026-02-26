@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Souls Auth</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script> <!-- For hashing passwords -->
+    <style>
+        body {
+            font-family: 'Times New Roman', serif; /* Medieval-style font */
+            background-image: url(domain.gif);
+            color: #d4af37; /* Gold text for fantasy feel */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background-image 0.5s ease; /* Smooth transition for background change */
+        }
+        body.signup-mode {
+           background-image: url(strong.gif);
+        }
+        .container {
+            background-color: rgba(0, 0, 0, 0.8); /* Dark, semi-transparent */
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5); /* Red glow like blood */
+            width: 350px;
+            border: 2px solid #8b0000; /* Dark red border */
+            transition: background-color 0.5s ease, color 0.5s ease; /* Smooth transitions */
+        }
+        body.signup-mode .container {
+            background-color: rgba(255, 255, 255, 0.9); /* Light container for sign-up */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+            border-color: #cccccc; /* Light border */
+            color: #000000; /* Black text inside container */
+        }
+        h2 {
+            text-align: center;
+            color: #ff0000; /* Blood red title */
+            text-shadow: 0 0 10px #ff0000;
+            margin-bottom: 20px;
+        }
+        body.signup-mode h2 {
+            color: #000000; /* Black title for sign-up */
+            text-shadow: none;
+        }
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            background-color: #2c2c2c; /* Dark gray */
+            color: #d4af37;
+            border: 1px solid #8b0000;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin: 0 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.signup-mode .tab-button {
+            background-color: #f0f0f0; /* Light gray for sign-up mode */
+            color: #000000;
+            border-color: #cccccc;
+        }
+        .tab-button.active {
+            background-color: #8b0000; /* Active tab in red */
+            color: white;
+        }
+        body.signup-mode .tab-button.active {
+            background-color: #007bff; /* Blue active for sign-up mode */
+            color: white;
+        }
+        .tab-button:hover {
+            background-color: #5a5a5a;
+        }
+        body.signup-mode .tab-button:hover {
+            background-color: #cccccc;
+        }
+        .form-section {
+            display: none;
+        }
+        .form-section.active {
+            display: block;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #8b0000;
+            border-radius: 5px;
+            box-sizing: border-box;
+            background-color: #1a1a1a;
+            color: #d4af37;
+            font-family: inherit;
+        }
+        body.signup-mode input {
+            background-color: #ffffff;
+            color: #000000;
+            border-color: #cccccc;
+        }
+        input::placeholder {
+            color: #888;
+        }
+        body.signup-mode input::placeholder {
+            color: #aaa;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #ff0000; /* Red button like blood */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 16px;
+            text-shadow: 0 0 5px #ff0000;
+            transition: background-color 0.3s;
+        }
+        body.signup-mode button {
+            background-color: #007bff; /* Blue button for sign-up mode */
+            text-shadow: none;
+        }
+        button:hover {
+            background-color: #cc0000; /* Darker red on hover */
+        }
+        body.signup-mode button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+        .error {
+            color: #ffcccc;
+            font-size: 14px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        body.signup-mode .error {
+            color: #ff0000; /* Red error for contrast */
+        }
+        .success {
+            color: #ccffcc;
+            font-size: 14px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        body.signup-mode .success {
+            color: #28a745; /* Green success */
+        }
+        p {
+            text-align: center;
+            margin-top: 15px;
+            color: #d4af37;
+        }
+        body.signup-mode p {
+            color: #000000;
+        }
+        a {
+            color: #ff0000;
+            text-decoration: none;
+        }
+        body.signup-mode a {
+            color: #007bff;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Home page styles */
+        .home-page {
+            display: none; /* Hidden by default */
+            text-align: center;
+            color: white;
+
+            background-image: url('gear 5.gif');
+            background-size: cover;  
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 110vh;            
+            width: 100%;
+			margin-left: 0;
+			margin-top: 0;
+			
+            padding: 15px 40px;	
+        }
+        .home-page h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        .menu {
+            margin-bottom: 20px;
+            display: inline-block;
+            margin-top: 40px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background: #ffffffc9;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+        .menu a {
+            display: block;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            color: #000;
+            text-decoration: none;
+            border-bottom: 1px solid #333;
+        }
+        .menu a:hover {
+            background-color: #555;
+        }
+        .menu.restricted a {
+            pointer-events: none; /* Disable clicks */
+            opacity: 0.5; /* Make them look disabled */
+            cursor: not-allowed;
+        }
+        .note {
+            margin-top: 10px;
+            font-style: italic;
+            font-size: 0.8em;
+            color: #888;
+            
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .restricted-message {
+            display: none;
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="authContainer">
+        <h2>Prison Realm</h2>
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="showForm('login')">Log In</button>
+            <button class="tab-button" onclick="showForm('signup')">Sign Up</button>
+        </div>
+        
+        <div id="loginForm" class="form-section active">
+            <form id="login">
+                <input type="text" id="loginUsername" placeholder="Username or Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <div id="loginError" class="error"></div>
+                <div id="loginSuccess" class="success"></div>
+                <button type="submit">Enter the Infinity Void</button>
+            </form>
+        </div>
+        
+        <div id="signupForm" class="form-section">
+            <form id="signup">
+                <input type="text" id="signupUsername" placeholder="Username" required>
+                <input type="email" id="signupEmail" placeholder="Email" required>
+                <input type="password" id="signupPassword" placeholder="Password" required>
+                <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" required>
+                <div id="signupError" class="error"></div>
+                <div id="signupSuccess" class="success"></div>
+                <button type="submit">Forge Your Path</button>
+            </form>
+        </div>
+        
+        <p>Prepare for the journey ahead...</p>
+    </div>
+
+    <!-- Home Page Content (Hidden by default) -->
+    <div class="home-page" id="homePage">
+        <h1>My Home Page</h1>
+        <div class="menu" id="menu">
+           <a href="personal.html">Personal Details</a>
+           <a href="family.html">Family Background</a>
+           <a href="Education.html">Education Background</a>
+           <a href="collection.html">Collection Background</a>
+        </div>
+        <div class="note">
+            Click to see info
+        </div>
+        <div class="restricted-message" id="restrictedMsg">
+            Access to content is restricted for this user.
+        </div>
+        <div class="footer">
+            <p>Created by: Balbuena Francis Joseph</p>
+        </div>
+    </div>
+
+    <script>
+        function showForm(formType) {
+            document.getElementById('loginForm').classList.remove('active');
+            document.getElementById('signupForm').classList.remove('active');
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            if (formType === 'login') {
+                document.getElementById('loginForm').classList.add('active');
+                document.querySelector('button[onclick="showForm(\'login\')"]').classList.add('active');
+                document.body.classList.remove('signup-mode'); // Switch to dark mode
+            } else {
+                document.getElementById('signupForm').classList.add('active');
+                document.querySelector('button[onclick="showForm(\'signup\')"]').classList.add('active');
+                document.body.classList.add('signup-mode'); // Switch to light mode
+            }
+            // Clear messages when switching
+            document.getElementById('loginError').textContent = '';
+            document.getElementById('loginSuccess').textContent = '';
+            document.getElementById('signupError').textContent = '';
+            document.getElementById('signupSuccess').textContent = '';
+        }
+	
+        // Utility to hash password
+        function hashPassword(password) {
+            return CryptoJS.SHA256(password).toString();
+        }
+
+        // Sign-up logic
+        document.getElementById('signup').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('signupUsername').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            const errorDiv = document.getElementById('signupError');
+            const successDiv = document.getElementById('signupSuccess');
+
+            errorDiv.textContent = '';
+            successDiv.textContent = '';
+
+            if (!username || !email || !password || !confirmPassword) {
+                errorDiv.textContent = 'All fields are required, hollow one.';
+                return;
+            }
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Passwords do not match. Try again.';
+                return;
+            }
+            if (password.length < 6) {
+                errorDiv.textContent = 'Password must be at least 6 characters.';
+                return;
+            }
+
+            // Check if user already exists
+            const users = JSON.parse(localStorage.getItem('darkSoulsUsers') || '{}');
+            if (users[username]) {
+                errorDiv.textContent = 'Username already taken.';
+                return;
+            }
+
+            // Store user (hash password)
+            users[username] = {
+                email: email,
+                password: hashPassword(password)
+            };
+            localStorage.setItem('darkSoulsUsers', JSON.stringify(users));
+
+            successDiv.textContent = 'Your covenant is sealed, ' + username + '! The journey begins.';
+            // Clear form
+            document.getElementById('signup').reset();
+        });
+
+        // Login Logic
+        document.getElementById('login').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const usernameOrEmail = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            const successDiv = document.getElementById('loginSuccess');
+
+            errorDiv.textContent = '';
+            successDiv.textContent = '';
+
+            if (!usernameOrEmail || !password) {
+                errorDiv.textContent = 'All fields are required, undead.';
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('darkSoulsUsers') || '{}');
+            let user = null;
+            let username = '';
+
+            // Check by username or email
+            for (const u in users) {
+                if (u === usernameOrEmail || users[u].email === usernameOrEmail) {
+                    user = users[u];
+                    username = u;
+                    break;
+                }
+            }
+
+            if (!user || user.password !== hashPassword(password)) {
+                errorDiv.textContent = 'Invalid credentials.';
+                return;
+            }
+
+            successDiv.textContent = 'Welcome back to the realm, ' + username + '! May your bonfires burn eternal.';
+            // Simulate login persistence
+            localStorage.setItem('loggedInUser', username);
+            // Clear form
+            document.getElementById('login').reset();
+            
+            // Show the home page for everyone, but restrict access for non-"toji"
+            setTimeout(() => {
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('homePage').style.display = 'block';
+                document.body.style.display = 'block';
+                document.body.style.justifyContent = 'flex-start';
+                document.body.style.alignItems = 'flex-start';
+                document.body.style.height = 'auto';
+                document.body.style.padding = '20px';
+
+                if (username !== 'toji') {
+                    // Restrict access: disable links and show message
+                    document.getElementById('menu').classList.add('restricted');
+                    document.getElementById('restrictedMsg').style.display = 'block';
+                }
+            }, 2000);  // 2-second delay
+        });
+    </script>
+</body>
+</html>		
