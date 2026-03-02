@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Home Page</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            margin: 0;
+            padding: 15px 40px;
+            text-align: center;
+            color: white;
+            background-image: url('gear 5.gif');
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 110vh;
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        .menu {
+            margin-bottom: 20px;
+            display: inline-block;
+            margin-top: 40px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background: #ffffffc9;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+        .menu a {
+            display: block;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            color: #000;
+            text-decoration: none;
+            border-bottom: 1px solid #333;
+        }
+        .menu a:last-child {
+            border-bottom: none;
+        }
+        .menu a:hover {
+            background-color: #555;
+            color: white;
+        }
+        .menu.restricted a {
+            pointer-events: none;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .note {
+            margin-top: 10px;
+            font-style: italic;
+            font-size: 0.8em;
+            color: #888;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .restricted-message {
+            display: none;
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Home Page</h1>
+    <div class="menu" id="menu">
+        <a href="personal.html">Personal Details</a>
+        <a href="family.html">Family Background</a>
+        <a href="Education.html">Education Background</a>
+        <a href="collection.html">Collection Background</a>
+    </div>
+    <div class="note">Click to see info</div>
+    <div class="restricted-message" id="restrictedMsg">
+        Access to content is restricted for this user.
+    </div>
+    <div class="footer">
+        <p>Created by: Balbuena Francis Joseph</p>
+    </div>
+
+    <script>
+        // Redirect to login if not logged in
+        const username = localStorage.getItem('loggedInUser');
+        if (!username) {
+            window.location.href = 'index.html';
+        }
+
+        // Restrict access for non-"toji" users
+        if (username !== 'toji') {
+            document.getElementById('menu').classList.add('restricted');
+            document.getElementById('restrictedMsg').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
